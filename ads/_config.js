@@ -227,6 +227,8 @@ export const adConfig = {
     prefetch: 'https://ec-ns.sascdn.com/diff/251/divscripte/amp.js',
   },
 
+  medianet: {},
+
   meg: {
     renderStartImplemented: true,
   },
