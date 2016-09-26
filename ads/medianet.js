@@ -22,15 +22,12 @@ import {getSourceUrl} from '../src/url';
  * @param {!Object} data
  */
 export function medianet(global, data) {
-    validateData(data, ['tagType', 'crid', 'cid'], ['versionId', 'requrl']);
-
-
+    validateData(data, ['tagType'], []);
     if (data.tagType ==='hb') {
 
     } else if ( data.tagType === 'sync') {
+        validateData(data, ['crid', 'cid'], ['versionId', 'requrl']);
         loadSyncTag(global, data);
-    } else {
-        loadAsyncAdtag(global, data);
     }
 }
 
@@ -48,39 +45,8 @@ function loadSyncTag(global, data) {
     global.medianet_height = data.height;
     global.medianet_crid = data.crid;
 
-
     writeScript(global, 'https://contextual.media.net/nmedianet.js?cid='+ encodeURIComponent(data.cid) +'&https=1');
 
 
 }
-
-/**
- * @param {!Window} global
- * @param {!Object} data
- */
-function loadAsyncAdtag(global, data) {
-    const pageURL = getSourceUrl(context.location.href);
-    global._mNHandle = global._mNHandle || {};
-    global._mNHandle.queue = global._mNHandle.queue || [];
-
-    writeScript(global, 'https://contextual.media.net/dmedianet.js?cid=' + encodeURIComponent(data.cid)+ '&https=1');
-
-    if (data.versionId) {
-        global.medianet_versionId = data.versionId;
-    }
-    global.medianet_requrl = data.requrl || pageURL;
-    const div = global.document.createElement('div');
-    let size = data.width + 'x' + data.height;
-    div.id = data.crid;
-    global.document.body.appendChild(div);
-    try {
-        global._mNHandle.queue.push(function () {
-            global._mNDetails.loadTag(data.crid, size, data.crid);
-        });
-    }
-    catch (error) {}
-}
-
-
-
 
