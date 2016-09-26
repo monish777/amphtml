@@ -22,11 +22,10 @@ import {getSourceUrl} from '../src/url';
  * @param {!Object} data
  */
 export function medianet(global, data) {
-    validateData(data, ['tagType'], []);
+    validateData(data, ['tagType', 'crid', 'cid'], ['versionId', 'requrl']);
     if (data.tagType ==='hb') {
 
     } else if ( data.tagType === 'sync') {
-        validateData(data, ['crid', 'cid'], ['versionId', 'requrl']);
         loadSyncTag(global, data);
     }
 }
