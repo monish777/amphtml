@@ -62,9 +62,7 @@ function loadAsyncAdtag(global, data) {
     const pageURL = getSourceUrl(context.location.href);
     global._mNHandle = global._mNHandle || {};
     global._mNHandle.queue = global._mNHandle.queue || [];
-    if (data.versionId) {
-        global.medianet_versionId = data.versionId;
-    }
+
     writeScript(global, 'https://contextual.media.net/dmedianet.js?cid=' + encodeURIComponent(data.cid)+ '&https=1');
 
     if (data.versionId) {
