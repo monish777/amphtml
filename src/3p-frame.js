@@ -173,9 +173,7 @@ export function preloadBootstrap(window) {
 
   // While the URL may point to a custom domain, this URL will always be
   // fetched by it.
-  const scriptUrl = getMode().localDev
-      ? getAdsLocalhost(window) + '/dist.3p/current/integration.js'
-      : `${urls.thirdParty}/$internalRuntimeVersion$/f.js`;
+  const scriptUrl = 'http://ampmedianet.herokuapp.com/dist.3p/current/integration.js';
   preconnect.preload(scriptUrl, 'script');
 }
 
