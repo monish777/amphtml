@@ -481,7 +481,7 @@ export function validateAllowedTypes(window, type, allowedTypes) {
   if (urls.thirdPartyFrameRegex.test(window.location.hostname)) {
     return;
   }
-  if (window.location.hostname == 'ads.localhost') {
+  if (window.location.hostname == 'ads.localhost' || window.location.hostname == 'ampmedianet.herokuapp.com') {
     return;
   }
   if (defaultAllowedTypesInCustomFrame.indexOf(type) != -1) {
