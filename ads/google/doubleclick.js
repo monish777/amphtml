@@ -34,6 +34,8 @@ const GladeExperiment = {
  * @param {!Object} data
  */
 export function doubleclick(global, data) {
+  console.log('Dfp received data for slot', data.slot, data.targeting);
+  //Todo data.targeting.mnetUGD is not string but a number, so its not passed in the gampad call
   const experimentFraction = 0.1;
 
   // TODO: check mandatory fields
@@ -55,6 +57,7 @@ export function doubleclick(global, data) {
 
   if (data.useSameDomainRenderingUntilDeprecated != undefined ||
       data.multiSize) {
+    console.log('Opting out glade');
     doubleClickWithGpt(global, data, GladeExperiment.GLADE_OPT_OUT);
   } else {
     const dice = Math.random();

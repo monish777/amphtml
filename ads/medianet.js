@@ -101,12 +101,14 @@ function loadHBTag(global, data) {
         // data.targeting['rpfl_' + data.account] = ASTargeting;
         // data.targeting['rpfl_elemid'] = 'c';
 
-        data.targeting = data.targeting || global.advBidxc.getMnetTargetingMap(data.position);
+        data.targeting = data.targeting || global.advBidxc.getMnetTargetingMap(data.position);  //todo-check if getMnetTargetingMap is a function
+        data.targeting.mnTest = '1'; //todo- test
+        data.useSameDomainRenderingUntilDeprecated = 1;
         deleteUnexpectedDoubleclickParams();  //Todo: Should change data.type = 'doubleclick'?
         doubleclick(global, data);
     }
 
-    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?cid=' + data.cid, () => {
+    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?cid=' + data.cid, () => { //todo change to live later
         console.log('Bid exchange loaded');
         window.setTimeout(loadDFP, 1000); //rubicontag.run(gptrun, 1000);
     });
