@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {writeScript, validateData} from '../3p/3p';
+import {writeScript, validateData, computeInMasterFrame} from '../3p/3p';
 import {getSourceUrl} from '../src/url';
 import {doubleclick} from '../ads/google/doubleclick';
 
@@ -73,8 +73,8 @@ function loadHBTag(global, data) {
     console.log('Data received', data);
 
     let gptran = false;
-    function loadDFP() {
-        console.log('load dfp called');
+    function loadDFP(result) {
+        console.log('load dfp called', result);
         function deleteUnexpectedDoubleclickParams() {
             var allParams = mandatoryParams.concat(optionalParams),
                 currentParam = '';
@@ -101,16 +101,23 @@ function loadHBTag(global, data) {
         // data.targeting['rpfl_' + data.account] = ASTargeting;
         // data.targeting['rpfl_elemid'] = 'c';
 
+        global.advBidxc = global.context.master.advBidxc;
         data.targeting = data.targeting || global.advBidxc.getMnetTargetingMap(data.position);  //todo-check if getMnetTargetingMap is a function
+        //&mnetbidID=99&mnetbidderID=mnet&mnetbidPrice=6.50&mnet_placement=rec&mnetAct=headerBid&mnetScpvid=&mnetTd=%257Cadx%253D1%257C
         data.targeting.mnTest = '1'; //todo- test
+        data.targeting.mnet = '1';
+
         data.useSameDomainRenderingUntilDeprecated = 1;
         deleteUnexpectedDoubleclickParams();  //Todo: Should change data.type = 'doubleclick'?
         doubleclick(global, data);
     }
 
-    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?cid=' + data.cid, () => { //todo change to live later
-        console.log('Bid exchange loaded');
-        window.setTimeout(loadDFP, 1000); //rubicontag.run(gptrun, 1000);
-    });
+    computeInMasterFrame (global, 'mnet-hb-load', function (done) {
+        writeScript(global, 'http://cmlocal.media.net/bidexchange.php?cid=' + data.cid, () => { //todo change to live later
+            console.log('Bid exchange loaded');
+            var result = 'Temporary result';
+            window.setTimeout(done(result), 1000); //rubicontag.run(gptrun, 1000);
+        });
+    }, loadDFP);
 }
 
