@@ -18,19 +18,24 @@ import {writeScript, validateData, computeInMasterFrame} from '../3p/3p';
 import {getSourceUrl} from '../src/url';
 import {doubleclick} from '../ads/google/doubleclick';
 
-const mandatoryParams = ['tagType', 'cid'],
+const mandatoryParams = ['tagType', 'cid'], //Todo Should I keep cid as mandatory
     optionalParams = ['slot', 'position', 'targeting', 'crid', 'versionId', 'requrl'], //We can mandate slot and position incase tagType=hb and similarly crid in case of CM
-    dfpParams = ['slot', 'targeting'];  // These Won't be deleted before sending to dfp
+    dfpParams = ['slot', 'targeting'],  // These Won't be deleted before sending to dfp
+    dfpDefaultTimeout = 300;    //Todo Correct?
 
+var startTime;
 /**
  * @param {!Window} global
  * @param {!Object} data
  */
 export function medianet(global, data) {
+    startTime = new Date().getTime();
+    console.log('Mnet third party amp ad called', new Date().getTime() - global.context.master.masterStartTime);
+    console.log('Is Master? ', global.context.isMaster);
     try {
         validateData(data, mandatoryParams, optionalParams);
     } catch (e) {
-        console.log('We can log missing attributes here');
+        console.log('We can log missing attributes here');  //We must because if a param is missing only in the master frame, then all our ads on the page will be affected
         console.log(e);
     }
 
@@ -56,25 +61,20 @@ function loadSyncTag(global, data) {
     global.medianet_requrl = data.requrl;
     global.medianet_width = data.width;
     global.medianet_height = data.height;
-    global.medianet_crid = data.crid;
+    global.medianet_crid = data.crid;   //Todo-What if crid is not present
 
     writeScript(global, 'https://contextual.media.net/nmedianet.js?cid='+ encodeURIComponent(data.cid) +'&https=1');
-
-
 }
 
-
-
 function loadHBTag(global, data) {
-    //validateData(data, mandatoryParams, optionalParams);
+    global.advBidxc_requrl = data.requrl + '&force_hbtest=1';   //Todo-This can be done in master frame only
+    //validateData(data, mandatoryParams, optionalParams);  //Todo-We should probably mandate slot and position here
 
-    global.mnetAmpProject = true; //rubicontag.setIntegration('amp');
-    global.advBidxc_requrl = context.location.href; //rubicontag.setUrl(getSourceUrl(context.location.href));Todo should be here or in amp-manager?
-    console.log('Data received', data);
+    console.log('HB Data received', data, new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
 
     let gptran = false;
     function loadDFP(result) {
-        console.log('load dfp called', result);
+        console.log('load dfp called', result, new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
         function deleteUnexpectedDoubleclickParams() {
             var allParams = mandatoryParams.concat(optionalParams),
                 currentParam = '';
@@ -86,37 +86,39 @@ function loadHBTag(global, data) {
             }
         }
         if (gptran) {
+            console.log('Gpt ran already', global.context.isMaster);
             return;
         }
         gptran = true;
 
-        // let ASTargeting = rubicontag.getSlot('c').getAdServerTargeting();
-        // const ptrn = /rpfl_\d+/i;
-        // for (let i = 0; i < ASTargeting.length; i++) {
-        //   if (ptrn.test(ASTargeting[i].key)) {
-        //     ASTargeting = ASTargeting[i].values;
-        //   }
-        // }
-        // if (!data.targeting) { data.targeting = {}; }
-        // data.targeting['rpfl_' + data.account] = ASTargeting;
-        // data.targeting['rpfl_elemid'] = 'c';
-
         global.advBidxc = global.context.master.advBidxc;
-        data.targeting = data.targeting || global.advBidxc.getMnetTargetingMap(data.position);  //todo-check if getMnetTargetingMap is a function
-        //&mnetbidID=99&mnetbidderID=mnet&mnetbidPrice=6.50&mnet_placement=rec&mnetAct=headerBid&mnetScpvid=&mnetTd=%257Cadx%253D1%257C
-        data.targeting.mnTest = '1'; //todo- test
-        data.targeting.mnet = '1';
+        global.addEventListener("message", global.advBidxc.renderAmpAd);   //Todo cross-browser?
 
-        data.useSameDomainRenderingUntilDeprecated = 1;
+        data.targeting = data.targeting || {};
+        // var mnetTargeting = typeof global.advBidxc.getMnetTargetingMap === "function" ? global.advBidxc.getMnetTargetingMap(data.position) || {} : {};
+        var mnetTargeting = result && result[data.position] ? result[data.position] : {};
+        Object.assign(data.targeting, mnetTargeting);   //Todo: Test in IE(No support)
+
         deleteUnexpectedDoubleclickParams();  //Todo: Should change data.type = 'doubleclick'?
+        console.log('Calling double click', new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
         doubleclick(global, data);
     }
 
     computeInMasterFrame (global, 'mnet-hb-load', function (done) {
-        writeScript(global, 'http://cmlocal.media.net/bidexchange.php?cid=' + data.cid, () => { //todo change to live later
-            console.log('Bid exchange loaded');
-            var result = 'Temporary result';
-            window.setTimeout(done(result), 1000); //rubicontag.run(gptrun, 1000);
+        global.masterStartTime = startTime;
+        console.log('Computing in master frame', new Date().getTime() - global.context.master.masterStartTime);
+        global.loadAMPDFP = done;    //Exposing the done function in master, so that we can call the done function before timeout
+        writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => { //todo change to live later; Can we have a timeout for bidexchange to respond (Check cmlocal on wifi)
+            console.log('Bid exchange loaded', new Date().getTime() - global.context.master.masterStartTime);
+            if (global.advBidxc) {
+                // var result = typeof global.advBidxc.getMnetTargetingResult === "function" ? global.advBidxc.getMnetTargetingResult() : {};
+                var timeout = global.configSettings && global.configSettings.hbInfo && typeof global.configSettings.ampDFPDelay === 'number' ? global.configSettings.ampDFPDelay :  dfpDefaultTimeout;
+                console.log(timeout, 'Timeout');
+                global.setTimeout(done, timeout, global.advBidxc.mnetTargetingResult || {});   //Once master script gets executed and done gets called, if some amp-ad located deep below the page gets called when the user scrolls down, its loadDFP copy gets called almost immediately(approx 10ms).
+                //In child frames, the done copy(along with the parameters) that was called most recently from master gets called --> Screenshot AMP1
+            } else {
+                //todo: log error here
+            }
         });
     }, loadDFP);
 }
