@@ -73,8 +73,8 @@ function loadHBTag(global, data) {
     console.log('HB Data received', data, new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
 
     let gptran = false;
-    function loadDFP(result) {
-        console.log('load dfp called', result, new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
+    function loadDFP() {
+        console.log('load dfp called', new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
         function deleteUnexpectedDoubleclickParams() {
             var allParams = mandatoryParams.concat(optionalParams),
                 currentParam = '';
@@ -95,31 +95,57 @@ function loadHBTag(global, data) {
         global.addEventListener("message", global.advBidxc.renderAmpAd);   //Todo cross-browser?
 
         data.targeting = data.targeting || {};
-        // var mnetTargeting = typeof global.advBidxc.getMnetTargetingMap === "function" ? global.advBidxc.getMnetTargetingMap(data.position) || {} : {};
-        var mnetTargeting = result && result[data.position] ? result[data.position] : {};
-        Object.assign(data.targeting, mnetTargeting);   //Todo: Test in IE(No support)
 
         deleteUnexpectedDoubleclickParams();  //Todo: Should change data.type = 'doubleclick'?
         console.log('Calling double click', new Date().getTime() - global.context.master.masterStartTime, global.context.isMaster);
         doubleclick(global, data);
     }
 
+    function mnetHBDone() {
+        global.advBidxc = global.context.master.advBidxc;
+        if (typeof global.advBidxc.handleAMPHB === "function") {
+            global.advBidxc.handleAMPHB({
+                cb: loadDFP,
+                data: data,
+                winObj: global
+            });
+        } else {
+            console.error('Mnet Error: handleAMPHB function not found');
+        }
+    }
+
+    function mnetHBTimeout() {
+        global.advBidxc = global.context.master.advBidxc;
+        if (typeof global.advBidxc.handleAMPHB === "function") {
+            global.advBidxc.handleAMPHBTimeout({
+                cb: loadDFP,
+                data: data,
+                winObj: global
+            });
+        } else {
+            console.error('Mnet Error: handleAMPHBTimeout function not found');
+        }
+    }
+
     computeInMasterFrame (global, 'mnet-hb-load', function (done) {
         global.masterStartTime = startTime;
         console.log('Computing in master frame', new Date().getTime() - global.context.master.masterStartTime);
-        global.loadAMPDFP = done;    //Exposing the done function in master, so that we can call the done function before timeout
+        global.mnetHBDone = done;    //Exposing the done function in master, so that we can call the done function before timeout
         writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => { //todo change to live later; Can we have a timeout for bidexchange to respond (Check cmlocal on wifi)
             console.log('Bid exchange loaded', new Date().getTime() - global.context.master.masterStartTime);
             if (global.advBidxc) {
                 // var result = typeof global.advBidxc.getMnetTargetingResult === "function" ? global.advBidxc.getMnetTargetingResult() : {};
-                var timeout = global.configSettings && global.configSettings.hbInfo && typeof global.configSettings.ampDFPDelay === 'number' ? global.configSettings.ampDFPDelay :  dfpDefaultTimeout;
+                var timeout = global.configSettings && global.configSettings.hbInfo && typeof global.configSettings.hbInfo.ampDFPDelay === 'number' ? global.configSettings.hbInfo.ampDFPDelay :  dfpDefaultTimeout;
                 console.log(timeout, 'Timeout');
-                global.setTimeout(done, timeout, global.advBidxc.mnetTargetingResult || {});   //Once master script gets executed and done gets called, if some amp-ad located deep below the page gets called when the user scrolls down, its loadDFP copy gets called almost immediately(approx 10ms).
+                global.setTimeout(function () {
+                    done = mnetHBTimeout; //Todo test
+                    done();
+                }, timeout);   //Once master script gets executed and done gets called, if some amp-ad located deep below the page gets called when the user scrolls down, its loadDFP copy gets called almost immediately(approx 10ms).
                 //In child frames, the done copy(along with the parameters) that was called most recently from master gets called --> Screenshot AMP1
             } else {
                 //todo: log error here
             }
         });
-    }, loadDFP);
+    }, mnetHBDone);
 }
 
