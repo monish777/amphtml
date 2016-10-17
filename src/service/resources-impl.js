@@ -25,8 +25,8 @@ import {closest, hasNextNodeInDocumentOrder} from '../dom';
 import {expandLayoutRect} from '../layout-rect';
 import {fromClassForDoc} from '../service';
 import {inputFor} from '../input';
-import {installViewerService} from './viewer-impl';
-import {installViewportService} from './viewport-impl';
+import {installViewerServiceForDoc} from './viewer-impl';
+import {installViewportServiceForDoc} from './viewport-impl';
 import {installVsyncService} from './vsync-impl';
 import {isArray} from '../types';
 import {dev} from '../log';
@@ -71,7 +71,7 @@ export class Resources {
     this.win = ampdoc.win;
 
     /** @const @private {!./viewer-impl.Viewer} */
-    this.viewer_ = installViewerService(this.win);
+    this.viewer_ = installViewerServiceForDoc(ampdoc);
 
     /** @private {boolean} */
     this.isRuntimeOn_ = this.viewer_.isRuntimeOn();
@@ -128,7 +128,7 @@ export class Resources {
     /** @const {!TaskQueue} */
     this.queue_ = new TaskQueue();
 
-    /** @const */
+    /** @const {!function(./task-queue.TaskDef):number} */
     this.boundTaskScorer_ = task => this.calcTaskScore_(task);
 
    /**
@@ -146,7 +146,7 @@ export class Resources {
     this.isCurrentlyBuildingPendingResources_ = false;
 
     /** @private @const {!./viewport-impl.Viewport} */
-    this.viewport_ = installViewportService(this.win);
+    this.viewport_ = installViewportServiceForDoc(this.ampdoc);
 
     /** @private @const {!./vsync-impl.Vsync} */
     this.vsync_ = installVsyncService(this.win);
@@ -344,20 +344,26 @@ export class Resources {
    * Builds the element if ready to be built, otherwise adds it to pending resources.
    * @param {!Resource} resource
    * @param {boolean=} checkForDupes
+   * @param {boolean=} scheduleWhenBuilt
    * @private
    */
-  buildOrScheduleBuildForResource_(resource, checkForDupes = false) {
+  buildOrScheduleBuildForResource_(resource, checkForDupes = false,
+      scheduleWhenBuilt = true) {
     if (this.isRuntimeOn_) {
       if (this.documentReady_) {
         // Build resource immediately, the document has already been parsed.
         resource.build();
-        this.schedulePass();
+        if (scheduleWhenBuilt && !resource.isBlacklisted()) {
+          // TODO(dvoytenko): Consider removing "blacklisted" resources
+          // altogether from the list of resources.
+          this.schedulePass();
+        }
       } else if (!resource.element.isBuilt()) {
         if (!checkForDupes ||
             this.pendingBuildResources_.indexOf(resource) == -1) {
           // Otherwise add to pending resources and try to build any ready ones.
           this.pendingBuildResources_.push(resource);
-          this.buildReadyResources_();
+          this.buildReadyResources_(scheduleWhenBuilt);
         }
       }
     }
@@ -365,9 +371,10 @@ export class Resources {
 
   /**
    * Builds resources that are ready to be built.
+   * @param {boolean=} scheduleWhenBuilt
    * @private
    */
-  buildReadyResources_() {
+  buildReadyResources_(scheduleWhenBuilt = true) {
     // Avoid cases where elements add more elements inside of them
     // and cause an infinite loop of building - see #3354 for details.
     if (this.isCurrentlyBuildingPendingResources_) {
@@ -375,14 +382,17 @@ export class Resources {
     }
     try {
       this.isCurrentlyBuildingPendingResources_ = true;
-      this.buildReadyResourcesUnsafe_();
+      this.buildReadyResourcesUnsafe_(scheduleWhenBuilt);
     } finally {
       this.isCurrentlyBuildingPendingResources_ = false;
     }
   }
 
-  /** @private */
-  buildReadyResourcesUnsafe_() {
+  /**
+   * @param {boolean=} scheduleWhenBuilt
+   * @private
+   */
+  buildReadyResourcesUnsafe_(scheduleWhenBuilt = true) {
     let builtElementsCount = 0;
     // This will loop over all current pending resources and those that
     // get added by other resources build-cycle, this will make sure all
@@ -394,12 +404,14 @@ export class Resources {
         // Remove resource before build to remove it from the pending list
         // in either case the build succeed or throws an error.
         this.pendingBuildResources_.splice(i--, 1);
-        builtElementsCount++;
         resource.build();
+        if (!resource.isBlacklisted()) {
+          builtElementsCount++;
+        }
       }
     }
 
-    if (builtElementsCount > 0) {
+    if (scheduleWhenBuilt && builtElementsCount > 0) {
       this.schedulePass();
     }
   }
@@ -805,6 +817,7 @@ export class Resources {
       const scrollAdjSet = [];
       for (let i = 0; i < requestsChangeSize.length; i++) {
         const request = requestsChangeSize[i];
+        /** @const {!Resource} */
         const resource = request.resource;
         const box = resource.getLayoutBox();
         const iniBox = resource.getInitialLayoutBox();
@@ -967,8 +980,9 @@ export class Resources {
     let remeasureCount = 0;
     for (let i = 0; i < this.resources_.length; i++) {
       const r = this.resources_[i];
-      if (r.getState() == ResourceState.NOT_BUILT) {
-        this.buildOrScheduleBuildForResource_(r, /* checkForDupes */ true);
+      if (r.getState() == ResourceState.NOT_BUILT && !r.isBlacklisted()) {
+        this.buildOrScheduleBuildForResource_(r, /* checkForDupes */ true,
+            /* scheduleWhenBuilt */ false);
       }
       if (relayoutAll || r.getState() == ResourceState.NOT_LAID_OUT) {
         r.applySizesAndMediaQuery();
@@ -1176,6 +1190,7 @@ export class Resources {
    * this element or away from it.
    *
    * @param {!./task-queue.TaskDef} task
+   * @return {number}
    * @private
    */
   calcTaskScore_(task) {

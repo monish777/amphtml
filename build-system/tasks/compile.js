@@ -135,6 +135,9 @@ function compile(entryModuleFilenames, outputDir,
       'extensions/**/*-config.js',
       'extensions/amp-ad/**/*.js',
       'extensions/amp-a4a/**/*.js',
+      // Currently needed for crypto.js and visibility.js.
+      // Should consider refactoring.
+      'extensions/amp-analytics/**/*.js',
       'src/**/*.js',
       '!third_party/babel/custom-babel-helpers.js',
       // Exclude since it's not part of the runtime/extension binaries.
@@ -189,6 +192,7 @@ function compile(entryModuleFilenames, outputDir,
       );
       unneededFiles.push(
           'build/fake-module/src/polyfills.js',
+          'build/fake-module/src/polyfills/document-contains.js',
           'build/fake-module/src/polyfills/promise.js',
           'build/fake-module/src/polyfills/math-sign.js');
     }
@@ -244,20 +248,17 @@ function compile(entryModuleFilenames, outputDir,
         warning_level: 'DEFAULT',
         // Turn off warning for "Unknown @define" since we use define to pass
         // args such as FORTESTING to our runner.
-        jscomp_off: 'unknownDefines',
+        jscomp_off: ['unknownDefines'],
         define: [],
         hide_warnings_for: [
+          'third_party/closure-library/sha384-generated.js',
           'third_party/d3/',
           'third_party/vega/',
           'third_party/webcomponentsjs/',
           'node_modules/',
           'build/patched-module/',
-          // TODO: The following three are whitelisted only because they're
-          // blocking an unrelated PR.  But they appear to contain real type
-          // errors and should be fixed at some point.
-          'src/service.js',
+          // Can't seem to suppress `(0, win.eval)` suspicious code warning
           '3p/environment.js',
-          'src/document-state.js',
         ],
         jscomp_error: [],
       }
@@ -269,7 +270,25 @@ function compile(entryModuleFilenames, outputDir,
       // it won't do strict type checking if its whitespace only.
       compilerOptions.compilerFlags.define.push('TYPECHECK_ONLY=true');
       compilerOptions.compilerFlags.jscomp_error.push(
-          'checkTypes', 'accessControls', 'const', 'constantProperty');
+          'checkTypes',
+          'accessControls',
+          'const',
+          'constantProperty',
+          'globalThis');
+
+      // TODO(aghassemi): Remove when NTI is the default.
+      if (argv.nti) {
+        compilerOptions.compilerFlags.new_type_inf = true;
+        compilerOptions.compilerFlags.jscomp_off.push(
+          'newCheckTypesExtraChecks');
+        compilerOptions.compilerFlags.externs.push(
+          'build-system/amp.nti.extern.js'
+        );
+      } else {
+        compilerOptions.compilerFlags.externs.push(
+          'build-system/amp.oti.extern.js'
+        );
+      }
     }
     if (argv.pseudo_names) {
       compilerOptions.compilerFlags.define.push('PSEUDO_NAMES=true');
@@ -323,11 +342,17 @@ function patchRegisterElement() {
     file = fs.readFileSync(
         'node_modules/document-register-element/build/' +
         'document-register-element.node.js').toString();
-    // CommonJS support for closure does not wrap the module
-    // and inject `global` like browserify and other node module loaders
-    // so we nee to change this to `self` or `window`.
-    file = file.replace('installCustomElements(global);',
-        'installCustomElements(self);');
+    if (argv.fortesting) {
+      // Need to switch global to self since closure doesn't wrap the module
+      // like CommonJS
+      file = file.replace('installCustomElements(global);',
+          'installCustomElements(self);');
+    } else {
+      // Get rid of the side effect the module has so we can tree shake it
+      // better and control installation, unless --fortesting flag
+      // is passed since we also treat `--fortesting` mode as "dev".
+      file = file.replace('installCustomElements(global);', '');
+    }
     // Closure Compiler does not generate a `default` property even though
     // to interop CommonJS and ES6 modules. This is the same issue typescript
     // ran into here https://github.com/Microsoft/TypeScript/issues/2719

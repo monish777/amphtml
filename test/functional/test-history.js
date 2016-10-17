@@ -23,6 +23,7 @@ import {
 } from '../../src/service/history-impl';
 import {listenOncePromise} from '../../src/event-helper';
 import {installTimerService} from '../../src/service/timer-impl';
+import {parseUrl} from '../../src/url';
 import * as sinon from 'sinon';
 
 
@@ -112,14 +113,12 @@ describe('History', () => {
 });
 
 
-describe('History install', () => {
+describes.sandboxed('History install', {}, () => {
   let win;
   let ampdoc;
   let viewer;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-
     viewer = {
       isOvertakeHistory: () => false,
       onHistoryPoppedEvent: () => function() {},
@@ -137,13 +136,10 @@ describe('History install', () => {
         body: {},
         querySelector: () => null,
       },
+      location: parseUrl('https://cdn.ampproject.org/c/s/www.example.com/path'),
       addEventListener: () => null,
     };
     ampdoc = new AmpDocSingle(win);
-  });
-
-  afterEach(() => {
-    sandbox.restore();
   });
 
   it('should create natural binding and make it singleton', () => {
@@ -166,15 +162,12 @@ describe('History install', () => {
 });
 
 
-describe('HistoryBindingNatural', () => {
-
-  let sandbox;
+describes.sandboxed('HistoryBindingNatural', {}, () => {
   let clock;
   let onStackIndexUpdated;
   let history;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
     clock = sandbox.useFakeTimers();
     onStackIndexUpdated = sandbox.spy();
     history = new HistoryBindingNatural_(window);
@@ -183,7 +176,6 @@ describe('HistoryBindingNatural', () => {
 
   afterEach(() => {
     history.cleanup_();
-    sandbox.restore();
   });
 
   it('should initialize correctly', () => {

@@ -19,7 +19,7 @@ import {fromClass, getServiceForDoc} from '../service';
 import {getMode} from '../mode';
 import {dev} from '../log';
 import {timerFor} from '../timer';
-import {installViewerService} from './viewer-impl';
+import {installViewerServiceForDoc} from './viewer-impl';
 
 
 /** @private @const */
@@ -648,9 +648,10 @@ export class HistoryBindingVirtual_ {
  * @private
  */
 function createHistory(ampdoc) {
-  const viewer = installViewerService(ampdoc.win);
+  const viewer = installViewerServiceForDoc(ampdoc);
   let binding;
-  if (viewer.isOvertakeHistory() || getMode(ampdoc.win).test) {
+  if (viewer.isOvertakeHistory() || getMode(ampdoc.win).test ||
+          ampdoc.win.AMP_TEST_IFRAME) {
     binding = new HistoryBindingVirtual_(viewer);
   } else {
     // Only one global "natural" binding is allowed since it works with the

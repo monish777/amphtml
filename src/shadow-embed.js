@@ -90,6 +90,7 @@ export function createShadowRoot(hostElement) {
  */
 function createShadowRootPolyfill(hostElement) {
   const doc = hostElement.ownerDocument;
+  /** @const {!Window} */
   const win = doc.defaultView;
   const shadowRoot = /** @type {!ShadowRoot} */ (
       // Cast to ShadowRoot even though it is an Element
@@ -101,10 +102,8 @@ function createShadowRootPolyfill(hostElement) {
 
   // API: https://www.w3.org/TR/shadow-dom/#the-shadowroot-interface
 
-  /** @type {!Element} */
   shadowRoot.host = hostElement;
 
-  /** @type {function (this:ShadowRoot, string): ?HTMLElement} */
   shadowRoot.getElementById = function(id) {
     const escapedId = escapeCssSelectorIdent(win, id);
     return /** @type {HTMLElement|null} */ (
@@ -159,6 +158,7 @@ export function createShadowEmbedRoot(hostElement, extensionIds) {
   shadowRoot.AMP = {};
 
   const win = hostElement.ownerDocument.defaultView;
+  /** @const {!./service/extensions-impl.Extensions} */
   const extensions = extensionsFor(win);
   const ampdocService = ampdocServiceFor(win);
   const ampdoc = ampdocService.getAmpDoc(hostElement);
@@ -291,7 +291,10 @@ export function scopeShadowCss(shadowRoot, css) {
   }
 
   // Patch selectors.
-  return ShadowCSS.scopeRules(rules, `#${id}`, transformRootSelectors);
+  // Invoke `ShadowCSS.scopeRules` via `call` because the way it uses `this`
+  // internally conflicts with Closure compiler's advanced optimizations.
+  const scopeRules = ShadowCSS.scopeRules;
+  return scopeRules.call(ShadowCSS, rules, `#${id}`, transformRootSelectors);
 }
 
 
