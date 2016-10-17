@@ -55,6 +55,9 @@ export function medianet(global, data) {
  * @param {!Object} data
  */
 function loadSyncTag(global, data) {
+    if (!data.crid) {
+        return;
+    }
     if (data.versionId) {
         global.medianet_versionId = data.versionId;
     }
@@ -63,7 +66,7 @@ function loadSyncTag(global, data) {
     global.medianet_height = data.height;
     global.medianet_crid = data.crid;   //Todo-What if crid is not present
 
-    writeScript(global, 'https://contextual.media.net/nmedianet.js?cid='+ encodeURIComponent(data.cid) +'&https=1');
+    writeScript(global, 'https://contextual-stage.media.net/ampnmedianet.js?cid='+ encodeURIComponent(data.cid) +'&https=1');
 }
 
 function loadHBTag(global, data) {
