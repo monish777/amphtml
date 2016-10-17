@@ -178,13 +178,9 @@ export function preloadBootstrap(window, preconnect) {
 
   // While the URL may point to a custom domain, this URL will always be
   // fetched by it.
-  let scriptUrl = `${urls.thirdParty}/$internalRuntimeVersion$/f.js`;
-  if (window.location.href.indexOf('localhost') >= 0) {
-    scriptUrl = getAdsLocalhost(window) + '/dist.3p/current/integration.js';
-  }
-  if (window.location.href.indexOf('heroku') >= 0) {
-    scriptUrl = 'http://ampmedianet.herokuapp.com/dist.3p/current/integration.js';
-  }
+  const scriptUrl = getMode().localDev
+      ? getAdsLocalhost(window) + '/dist.3p/current/integration.js'
+      : `${urls.thirdParty}/$internalRuntimeVersion$/f.js`;
   preconnect.preload(scriptUrl, 'script');
 }
 
@@ -212,9 +208,6 @@ export function setDefaultBootstrapBaseUrlForTesting(url) {
  * @return {string}
  */
 function getDefaultBootstrapBaseUrl(parentWindow) {
-  if (parentWindow.location.href.indexOf('herokuapp') > -1) {
-    return 'http://ampmedianet.herokuapp.com/dist.3p/current/frame.max.html';
-  }
   if (getMode().localDev || getMode().test) {
     if (overrideBootstrapBaseUrl) {
       return overrideBootstrapBaseUrl;
