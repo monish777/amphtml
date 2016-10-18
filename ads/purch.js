@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-import {calculateExtensionScriptUrl} from '../service/extensions-impl';
+import {
+  writeScript,
+  validateData,
+  validateSrcPrefix} from '../3p/3p';
 
 /**
- * Import the "core" entry point for the AMP CDN Service Worker. This shell
- * file is kept intentionally small, so that checking if it has changed (and
- * thus, if a new SW must be installed) will be very fast.
+ * @param {!Window} global
+ * @param {!Object} data
  */
-const url = calculateExtensionScriptUrl(self.location, 'cache-service-worker');
-importScripts(url);
+export function purch(global, data) {
+  validateData(data, [],
+      ['pid', 'divid']);
+  global.data = data;
+
+  const adsrc = 'https://ramp.purch.com/serve/creative_amp.js';
+  validateSrcPrefix('https:', adsrc);
+  writeScript(global, adsrc);
+}

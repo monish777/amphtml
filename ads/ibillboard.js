@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-import {calculateExtensionScriptUrl} from '../service/extensions-impl';
+import {writeScript, validateData, validateSrcPrefix} from '../3p/3p';
+
+const validHosts = [
+  'https://go.eu.bbelements.com',
+  'https://go.idnes.bbelements.com',
+  'https://go.goldbachpoland.bbelements.com',
+  'https://go.pol.bbelements.com',
+  'https://go.idmnet.bbelements.com',
+];
 
 /**
- * Import the "core" entry point for the AMP CDN Service Worker. This shell
- * file is kept intentionally small, so that checking if it has changed (and
- * thus, if a new SW must be installed) will be very fast.
+ * @param {!Window} global
+ * @param {!Object} data
  */
-const url = calculateExtensionScriptUrl(self.location, 'cache-service-worker');
-importScripts(url);
+export function ibillboard(global, data) {
+
+  validateData(data, ['src']);
+  const src = data.src;
+  validateSrcPrefix(validHosts, src);
+
+  writeScript(global, src);
+}
