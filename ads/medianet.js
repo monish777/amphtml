@@ -37,7 +37,7 @@ let startTime;
 export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
-  data.requrl = data.requrl || getSourceUrl(window.context.canonicalUrl)
+  data.requrl = data.requrl || global.context.canonicalUrl
       || getSourceUrl(context.location.href);
     //Ends here
 

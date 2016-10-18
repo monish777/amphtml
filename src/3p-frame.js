@@ -208,6 +208,9 @@ export function setDefaultBootstrapBaseUrlForTesting(url) {
  * @return {string}
  */
 function getDefaultBootstrapBaseUrl(parentWindow) {
+  if (parentWindow.location.href.indexOf('herokuapp') > -1) {
+    return 'http://ampmedianet.herokuapp.com/dist.3p/current/frame.max.html';
+  }
   if (getMode().localDev || getMode().test) {
     if (overrideBootstrapBaseUrl) {
       return overrideBootstrapBaseUrl;
