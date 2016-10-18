@@ -35,7 +35,15 @@ let startTime;
  * @param {!Object} data
  */
 export function medianet(global, data) {
-  validateData(data, mandatoryParams, optionalParams);
+    startTime = new Date().getTime();
+    console.log('Mnet third party amp ad called', window.context.container, new Date().getTime() - global.context.master.masterStartTime);
+    console.log('Is Master? ', global.context.isMaster);
+    try {
+        validateData(data, mandatoryParams, optionalParams);
+    } catch (e) {
+        console.log('We can log missing attributes here');  //We must because if a param is missing only in the master frame, then all our ads on the page will be affected
+        console.log(e);
+    }
 
   data.requrl = data.requrl || getSourceUrl(window.context.canonicalUrl)
       || getSourceUrl(context.location.href);
