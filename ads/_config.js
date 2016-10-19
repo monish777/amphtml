@@ -254,7 +254,7 @@ export const adConfig = {
 
   medianet: {
     preconnect: 'https://contextual.media.net',
-    renderStartImplemented: true
+    renderStartImplemented: true,
   },
 
   meg: {
