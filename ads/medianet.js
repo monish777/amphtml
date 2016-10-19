@@ -28,7 +28,7 @@ const mandatoryParams = ['tagType', 'cid'],
       'timeout',
     ],
   dfpParams = ['slot', 'targeting'],
-  dfpDefaultTimeout = 1000;
+  dfpDefaultTimeout = 10000;
 
 /**
  * @param {!Window} global
@@ -74,26 +74,24 @@ function loadSyncTag(global, data) {
  * @param {!Object} data
  */
 function loadHBTag(global, data) {
-  if (!data.slot || !data.position) {
-    return;
-  }
 
-  let gptran = false;
-  function loadDFP() {
-    function deleteUnexpectedDoubleclickParams() {
-      const allParams = mandatoryParams.concat(optionalParams);
-      let currentParam = '';
-      for (let i = 0; i < allParams.length; i++) {
-        currentParam = allParams[i];
-        if (dfpParams.indexOf(currentParam) === -1 && data[currentParam]) {
-          delete data[currentParam];
-        }
+  function deleteUnexpectedDoubleclickParams() {
+    const allParams = mandatoryParams.concat(optionalParams);
+    let currentParam = '';
+    for (let i = 0; i < allParams.length; i++) {
+      currentParam = allParams[i];
+      if (dfpParams.indexOf(currentParam) === -1 && data[currentParam]) {
+        delete data[currentParam];
       }
     }
-    if (gptran) {
+  }
+
+  let isDoubleClickCalled = false;
+  function loadDFP() {
+    if (isDoubleClickCalled) {
       return;
     }
-    gptran = true;
+    isDoubleClickCalled = true;
 
     if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
       global.addEventListener('message', global.advBidxc.renderAmpAd);
