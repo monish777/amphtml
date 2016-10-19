@@ -25,9 +25,11 @@ const mandatoryParams = ['tagType', 'cid'],
       'crid',
       'versionId',
       'requrl',
+      'timeout',
     ],
   dfpParams = ['slot', 'targeting'],
-  dfpDefaultTimeout = 3000;
+  dfpDefaultTimeout = 1000;
+
 /**
  * @param {!Window} global
  * @param {!Object} data
@@ -35,7 +37,10 @@ const mandatoryParams = ['tagType', 'cid'],
 export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
-  data.requrl = data.requrl || global.context.canonicalUrl || getSourceUrl(global.context.location.href);
+  if (!data.requrl) {
+    data.requrl = global.context.canonicalUrl ||
+      getSourceUrl(global.context.location.href);
+  }
 
   if (data.tagType === 'hb') {
     loadHBTag(global, data);
@@ -75,60 +80,58 @@ function loadSyncTag(global, data) {
  * @param {!Object} data
  */
 function loadHBTag(global, data) {
-    if (!data.slot || !data.position) {
-        return;
+  if (!data.slot || !data.position) {
+    return;
+  }
+
+  let gptran = false;
+  function loadDFP() {
+    function deleteUnexpectedDoubleclickParams() {
+      const allParams = mandatoryParams.concat(optionalParams);
+      let currentParam = '';
+      for (let i = 0; i < allParams.length; i++) {
+        currentParam = allParams[i];
+        if (dfpParams.indexOf(currentParam) === -1 && data[currentParam]) {
+          delete data[currentParam];
+        }
+      }
+    }
+    if (gptran) {
+      return;
+    }
+    gptran = true;
+
+    if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
+      global.addEventListener('message', global.advBidxc.renderAmpAd);
     }
 
-    let gptran = false;
-    function loadDFP() {
-        function deleteUnexpectedDoubleclickParams() {
-            const allParams = mandatoryParams.concat(optionalParams);
-            let currentParam = '';
-            for (let i=0; i < allParams.length; i++) {
-                currentParam = allParams[i];
-                if (dfpParams.indexOf(currentParam) === -1 && data[currentParam]) {
-                    delete data[currentParam];
-                }
-            }
-        }
-        if (gptran) {
-            return;
-        }
-        gptran = true;
+    data.targeting = data.targeting || {};
 
-        if (global.advBidxc && typeof global.advBidxc.renderAmpAd === "function") {
-            global.addEventListener("message", global.advBidxc.renderAmpAd);
-        } else {
-            console.error('renderAmpAd function not found', global.advBidxc);   //global.advBidxc logged just to make sure if we have access to our bidexchange object
-        }
+    deleteUnexpectedDoubleclickParams();
+    doubleclick(global, data);
+  }
 
-        data.targeting = data.targeting || {};
-
-        deleteUnexpectedDoubleclickParams();
-        doubleclick(global, data);
+  function mnetHBHandle() {
+    global.advBidxc = global.context.master.advBidxc;
+    if (typeof global.advBidxc.handleAMPHB === 'function') {
+      global.advBidxc.handleAMPHB({
+        cb: loadDFP,
+        data,
+        winObj: global,
+      });
     }
+  }
 
-    function mnetHBHandle() {
-        global.advBidxc = global.context.master.advBidxc;
-        if (typeof global.advBidxc.handleAMPHB === "function") {
-            global.advBidxc.handleAMPHB({
-                cb: loadDFP,
-                data: data,
-                winObj: global
-            });
-        }
-    }
+  global.setTimeout(function() {
+    loadDFP();
+  }, data.timeout || dfpDefaultTimeout);
 
-    global.setTimeout(function () {
-        loadDFP();
-    }, dfpDefaultTimeout);
-
-    computeInMasterFrame (global, 'mnet-hb-load', function (done) {
-        global.advBidxc_requrl = data.requrl;
-        writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => {
-            done();
-        });
-    }, mnetHBHandle);
+  computeInMasterFrame(global, 'mnet-hb-load', function(done) {
+    global.advBidxc_requrl = data.requrl;
+    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => {
+      done();
+    });
+  }, mnetHBHandle);
 }
 function setMacro(data, type, name) {
     name = name || type;
