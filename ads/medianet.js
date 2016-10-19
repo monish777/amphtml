@@ -28,8 +28,6 @@ const mandatoryParams = ['tagType', 'cid'],
     ],
   dfpParams = ['slot', 'targeting'],
   dfpDefaultTimeout = 3000;
-
-let startTime;
 /**
  * @param {!Window} global
  * @param {!Object} data
@@ -53,17 +51,23 @@ export function medianet(global, data) {
 function loadSyncTag(global, data) {
   /*eslint "google-camelcase/google-camelcase": 0*/
   if (!data.crid) {
-    return;
+        return;
   }
-  if (data.versionId) {
-    global.medianet_versionId = data.versionId;
-  }
-  global.medianet_requrl = data.requrl;
-  global.medianet_width = data.width;
-  global.medianet_height = data.height;
-  global.medianet_crid = data.crid;
-
-  writeScript(global, 'https://contextual-stage.media.net/ampnmedianet.js?cid=' + encodeURIComponent(data.cid) + '&https=1');
+  let url = 'https://contextual-stage.media.net/ampnmedianet.js?';
+    url += 'cid=' + encodeURIComponent(data.cid);
+    url += '&https=1';
+    url += '&requrl=' + encodeURIComponent(data.requrl);
+    if (global.context.referrer) {
+        url += '&refurl=' + encodeURIComponent(global.context.referrer);
+        global.medianet_refurl = global.context.referrer;
+    }
+  setMacro(data, 'versionId');
+  setMacro(data, 'requrl');
+  setMacro(data, 'width');
+  setMacro(data, 'height');
+  setMacro(data, 'crid');
+  setCallbacks(global);
+  writeScript(global, url);
 }
 
 /**
@@ -125,4 +129,29 @@ function loadHBTag(global, data) {
             done();
         });
     }, mnetHBHandle);
+}
+function setMacro(data, type, name) {
+    name = name || type;
+    name = 'medianet_' + name;
+    if (data && data[type]) {
+        global[name] = data[type];
+    }
+}
+
+function setCallbacks(global) {
+    function renderStartCallback () {
+        console.log('renderStartCalled');
+        global.context.renderStart();
+    }
+    function reportRenderedEntityIdentifierCallback(ampId) {
+        console.log('reported rendered entity' + ampId);
+        global.context.reportRenderedEntityIdentifier(ampId);
+    }
+
+    let callbacks = {
+        renderStartCallback: renderStartCallback,
+        reportRenderedEntityIdentifierCallbackreportRenderedEntityIdentifierCallback
+    };
+    global._mNAmp= callbacks;
+
 }
