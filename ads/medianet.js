@@ -25,11 +25,11 @@ const mandatoryParams = ['tagType', 'cid'],
       'crid',
       'versionId',
       'requrl',
+      'timeout'
     ],
   dfpParams = ['slot', 'targeting'],
-  dfpDefaultTimeout = 3000;
+  dfpDefaultTimeout = 1000;
 
-let startTime;
 /**
  * @param {!Window} global
  * @param {!Object} data
@@ -94,8 +94,6 @@ function loadHBTag(global, data) {
 
         if (global.advBidxc && typeof global.advBidxc.renderAmpAd === "function") {
             global.addEventListener("message", global.advBidxc.renderAmpAd);
-        } else {
-            console.error('renderAmpAd function not found', global.advBidxc);   //global.advBidxc logged just to make sure if we have access to our bidexchange object
         }
 
         data.targeting = data.targeting || {};
@@ -117,7 +115,7 @@ function loadHBTag(global, data) {
 
     global.setTimeout(function () {
         loadDFP();
-    }, dfpDefaultTimeout);
+    }, data.timeout || dfpDefaultTimeout);
 
     computeInMasterFrame (global, 'mnet-hb-load', function (done) {
         global.advBidxc_requrl = data.requrl;
