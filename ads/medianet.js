@@ -56,16 +56,16 @@ export function medianet(global, data) {
 function loadSyncTag(global, data) {
   /*eslint "google-camelcase/google-camelcase": 0*/
   if (!data.crid) {
-        return;
+    return;
   }
   let url = 'https://contextual-stage.media.net/ampnmedianet.js?';
-    url += 'cid=' + encodeURIComponent(data.cid);
-    url += '&https=1';
-    url += '&requrl=' + encodeURIComponent(data.requrl);
-    if (global.context.referrer) {
-        url += '&refurl=' + encodeURIComponent(global.context.referrer);
-        global.medianet_refurl = global.context.referrer;
-    }
+  url += 'cid=' + encodeURIComponent(data.cid);
+  url += '&https=1';
+  url += '&requrl=' + encodeURIComponent(data.requrl);
+  if (global.context.referrer) {
+    url += '&refurl=' + encodeURIComponent(global.context.referrer);
+    global.medianet_refurl = global.context.referrer;
+  }
   setMacro(data, 'versionId');
   setMacro(data, 'requrl');
   setMacro(data, 'width');
@@ -134,27 +134,35 @@ function loadHBTag(global, data) {
   }, mnetHBHandle);
 }
 function setMacro(data, type, name) {
-    name = name || type;
-    name = 'medianet_' + name;
-    if (data && data[type]) {
-        global[name] = data[type];
-    }
+  if (!type || !data) {
+    return;
+  }
+  name = name || type;
+  name = 'medianet_' + name;
+  if (data[type]) {
+    global[name] = data[type];
+  }
 }
 
 function setCallbacks(global) {
-    function renderStartCallback () {
-        console.log('renderStartCalled');
-        global.context.renderStart();
-    }
-    function reportRenderedEntityIdentifierCallback(ampId) {
-        console.log('reported rendered entity' + ampId);
-        global.context.reportRenderedEntityIdentifier(ampId);
-    }
+  function renderStartCallback() {
+    console.log('renderStartCalled');
+    global.context.renderStart();
+  }
+  function reportRenderedEntityIdentifierCallback(ampId) {
+    console.log('reported rendered entity' + ampId);
+    global.context.reportRenderedEntityIdentifier(ampId);
+  }
+  function noContentAvailableCallback() {
+    console.log('no content available called');
+    global.context.noContentAvailable();
+  }
 
-    let callbacks = {
-        renderStartCallback: renderStartCallback,
-        reportRenderedEntityIdentifierCallbackreportRenderedEntityIdentifierCallback
-    };
-    global._mNAmp= callbacks;
+  const callbacks = {
+    renderStartCallback,
+    reportRenderedEntityIdentifierCallback,
+    noContentAvailableCallback,
+  };
+  global._mNAmp = callbacks;
 
 }
