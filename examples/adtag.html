@@ -1,0 +1,91 @@
+<!doctype html>
+<html ⚡>
+<head>
+    <meta charset="utf-8">
+    <title>Ad examples</title>
+    <link rel="canonical" href="http://nonblocking.io/" >
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <style amp-custom>
+        .broken {
+            color: red;
+        }
+        amp-ad {
+            border: 1px solid #ccc;
+            max-width: 500px;
+        }
+        /* Included here to make sure it does not render. */
+        .fixed {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: #eee;
+            opacity: .8;
+        }
+        .red {
+            background-color: red;
+        }
+
+        amp-ad[type="revcontent"] {
+            width: 100%;
+            max-width: 1280px;
+            margin: 18px 0;
+            padding: 0;
+        }
+        amp-ad[type="nativo"] {
+            width: 100%;
+            max-width: 1280px;
+            margin: 18px 0;
+            padding: 0;
+            height:100px;
+        }
+        amp-ad div[placeholder] {
+            background-color: lightgray;
+        }
+        amp-ad div[fallback] {
+            background-color: black;
+        }
+        amp-ad div[placeholder]::after {
+            content: "loading ...";
+        }
+        amp-ad div[fallback]::after {
+            content: "No ad";
+            color: white;
+        }
+        amp-ad div[placeholder]::after,
+        amp-ad div[fallback]::after {
+            font-size: 20px;
+            line-height: 30px;
+            text-align: center;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(50% - 15px);
+        }
+    </style>
+    <script async custom-element="amp-ad" src="https://cdn.ampproject.org/v0/amp-ad-0.1.js"></script>
+    <script async custom-element="amp-analytics" src="https://cdn.ampproject.org/v0/amp-analytics-0.1.js"></script>
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+</head>
+<body>
+
+
+
+<h2 id="medianet">Media.net</h2>
+<amp-ad width=300 height=250
+        type="medianet"
+        data-tag-type="sync"
+        data-crid="112682482"
+        data-version-id="111299"
+        data-cid="8CU432356"
+        data-requrl="http://forbes.com"
+        data-misc='{"pageOpts":{"member": 958}, "adUnits": [{"disablePsa": true, "tagId": 6063968,"sizes": [300,250],"targetId": "apn_ad_1"}, {"tagId": 6063968,"sizes": [728,90],"targetId":"apn_ad_2"}]}'>
+>
+</amp-ad>
+
+
+
+
+</body>
+</html>
