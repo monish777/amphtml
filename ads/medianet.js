@@ -26,6 +26,7 @@ const mandatoryParams = ['tagType', 'cid'],
       'versionId',
       'requrl',
       'timeout',
+      'misc',
     ],
   dfpParams = ['slot', 'targeting'],
   dfpDefaultTimeout = 1000;
@@ -65,6 +66,13 @@ function loadSyncTag(global, data) {
   if (global.context.referrer) {
     url += '&refurl=' + encodeURIComponent(global.context.referrer);
     global.medianet_refurl = global.context.referrer;
+  }
+  if (data.misc) {
+    try {
+      global.medianet_misc = JSON.parse(data.misc);
+    } catch (e) {
+      global.medianet_misc = data.misc;
+    }
   }
   setMacro(data, 'versionId');
   setMacro(data, 'requrl');
