@@ -62,7 +62,7 @@ function loadSyncTag(global, data) {
   if (!data.crid) {
     return;
   }
-  let url = 'https://contextual-stage.media.net/ampnmedianet.js?';
+  let url = 'https://contextual.media.net/ampnmedianet.js?';
   url += 'cid=' + encodeURIComponent(data.cid);
   url += '&https=1';
   url += '&requrl=' + encodeURIComponent(data.requrl);
