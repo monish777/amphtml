@@ -145,9 +145,9 @@ function setMacro(data, type, name) {
 }
 
 function setCallbacks(global) {
-  function renderStartCallback() {
+  function renderStartCallback(opt_data) {
     console.log('renderStartCalled');
-    global.context.renderStart();
+    global.context.renderStart(opt_data);
   }
   function reportRenderedEntityIdentifierCallback(ampId) {
     console.log('reported rendered entity' + ampId);
