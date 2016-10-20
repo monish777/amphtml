@@ -27,6 +27,7 @@ const mandatoryParams = ['tagType', 'cid'],
       'requrl',
       'timeout',
       'misc',
+      'refurl',
     ],
   dfpParams = ['slot', 'targeting'],
   dfpDefaultTimeout = 1000;
@@ -42,7 +43,9 @@ export function medianet(global, data) {
     data.requrl = global.context.canonicalUrl ||
       getSourceUrl(global.context.location.href);
   }
-
+  if (!data.refurl) {
+    data.refurl = global.context.referrer;
+  }
   if (data.tagType === 'hb') {
     loadHBTag(global, data);
   } else if (data.tagType === 'sync') {
@@ -63,9 +66,9 @@ function loadSyncTag(global, data) {
   url += 'cid=' + encodeURIComponent(data.cid);
   url += '&https=1';
   url += '&requrl=' + encodeURIComponent(data.requrl);
-  if (global.context.referrer) {
-    url += '&refurl=' + encodeURIComponent(global.context.referrer);
-    global.medianet_refurl = global.context.referrer;
+  if (data.refurl) {
+    url += '&refurl=' + encodeURIComponent(data.refurl);
+    global.medianet_refurl = data.refurl;
   }
   if (data.misc) {
     try {
