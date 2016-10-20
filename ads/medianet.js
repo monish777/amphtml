@@ -108,7 +108,9 @@ function loadHBTag(global, data) {
     isDoubleClickCalled = true;
 
     if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
-      global.addEventListener('message', global.advBidxc.renderAmpAd);
+      global.addEventListener('message', function (event) {
+          global.advBidxc.renderAmpAd(event, global);
+      });
     }
 
     data.targeting = data.targeting || {};
