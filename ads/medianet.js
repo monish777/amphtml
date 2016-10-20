@@ -153,23 +153,23 @@ function setMacro(data, type, name) {
 }
 
 function setCallbacks(global) {
-  function renderStartCallback(opt_data) {
+  function renderStartCb(opt_data) {
     console.log('renderStartCalled');
     global.context.renderStart(opt_data);
   }
-  function reportRenderedEntityIdentifierCallback(ampId) {
+  function reportRenderedEntityIdentifierCb(ampId) {
     console.log('reported rendered entity' + ampId);
     global.context.reportRenderedEntityIdentifier(ampId);
   }
-  function noContentAvailableCallback() {
+  function noContentAvailableCb() {
     console.log('no content available called');
     global.context.noContentAvailable();
   }
 
   const callbacks = {
-    renderStartCallback,
-    reportRenderedEntityIdentifierCallback,
-    noContentAvailableCallback,
+    renderStartCb,
+    reportRenderedEntityIdentifierCb,
+    noContentAvailableCb,
   };
   global._mNAmp = callbacks;
 
