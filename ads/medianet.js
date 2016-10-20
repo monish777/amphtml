@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-import {writeScript, validateData, computeInMasterFrame} from '../3p/3p';
+import {writeScript, validateData} from '../3p/3p';
 import {getSourceUrl} from '../src/url';
-import {doubleclick} from '../ads/google/doubleclick';
+
 
 const mandatoryParams = ['tagType', 'cid'],
-  optionalParams = ['slot',
-      'position',
-      'targeting',
-      'crid',
-      'versionId',
-      'requrl',
-      'timeout',
-      'misc',
-      'refurl',
-    ],
-  dfpParams = ['slot', 'targeting'],
-  dfpDefaultTimeout = 10000;
+  optionalParams = [
+    'crid',
+    'versionId',
+    'requrl',
+    'misc',
+    'refurl',
+  ];
 
 /**
  * @param {!Window} global
@@ -46,9 +41,7 @@ export function medianet(global, data) {
   if (!data.refurl) {
     data.refurl = global.context.referrer;
   }
-  if (data.tagType === 'hb') {
-    loadHBTag(global, data);
-  } else if (data.tagType === 'sync') {
+  if (data.tagType === 'sync') {
     loadSyncTag(global, data);
   }
 }
@@ -86,64 +79,6 @@ function loadSyncTag(global, data) {
   writeScript(global, url);
 }
 
-/**
- * @param {!Window} global
- * @param {!Object} data
- */
-function loadHBTag(global, data) {
-
-  function deleteUnexpectedDoubleclickParams() {
-    const allParams = mandatoryParams.concat(optionalParams);
-    let currentParam = '';
-    for (let i = 0; i < allParams.length; i++) {
-      currentParam = allParams[i];
-      if (dfpParams.indexOf(currentParam) === -1 && data[currentParam]) {
-        delete data[currentParam];
-      }
-    }
-  }
-
-  let isDoubleClickCalled = false;
-  function loadDFP() {
-    if (isDoubleClickCalled) {
-      return;
-    }
-    isDoubleClickCalled = true;
-
-    if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
-      global.addEventListener('message', function (event) {
-          global.advBidxc.renderAmpAd(event, global);
-      });
-    }
-
-    data.targeting = data.targeting || {};
-
-    deleteUnexpectedDoubleclickParams();
-    doubleclick(global, data);
-  }
-
-  function mnetHBHandle() {
-    global.advBidxc = global.context.master.advBidxc;
-    if (typeof global.advBidxc.handleAMPHB === 'function') {
-      global.advBidxc.handleAMPHB({
-        cb: loadDFP,
-        data,
-        winObj: global,
-      });
-    }
-  }
-
-  global.setTimeout(function() {
-    loadDFP();
-  }, data.timeout || dfpDefaultTimeout);
-
-  computeInMasterFrame(global, 'mnet-hb-load', function(done) {
-    global.advBidxc_requrl = data.requrl;
-    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => {
-      done();
-    });
-  }, mnetHBHandle);
-}
 function setMacro(data, type, name) {
   if (!type || !data) {
     return;
