@@ -18,41 +18,21 @@ import {writeScript, validateData, computeInMasterFrame} from '../3p/3p';
 import {getSourceUrl} from '../src/url';
 import {doubleclick} from '../ads/google/doubleclick';
 
-const mandatoryParams = ['tagType', 'cid'],
-  optionalParams = ['slot',
-    'position',
-    'targeting',
-    'crid',
-    'versionId',
-    'requrl',
-    'refurl',
-    'timeout',
-    'misc',
-    'categoryExclusions',
-    'tagForChildDirectedTreatment',
-    'cookieOptions',
-    'overrideWidth',
-    'overrideHeight',
-    'loadingStrategy',
-    'consentNotificationId',
-    'useSameDomainRenderingUntilDeprecated',
-    'experimentId',
-    // 'multiSize',TODO
-    // 'multiSizeValidation',
+const mandatoryParams = ['tagtype', 'cid'],
+  optionalParams = [
+    'crid', 'timeout', 'misc',
+    'slot', 'targeting', 'categoryExclusions',
+    'tagForChildDirectedTreatment', 'cookieOptions',
+    'overrideWidth', 'overrideHeight', 'loadingStrategy',
+    'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
+    'experimentId', 'multiSize', 'multiSizeValidation',
   ],
-  dfpParams = ['slot',
-    'targeting',
-    'categoryExclusions',
-    'tagForChildDirectedTreatment',
-    'cookieOptions',
-    'overrideWidth',
-    'overrideHeight',
-    'loadingStrategy',
-    'consentNotificationId',
-    'useSameDomainRenderingUntilDeprecated',
-    'experimentId',
-    // 'multiSize',TODO
-    // 'multiSizeValidation',
+  dfpParams = [
+      'slot', 'targeting', 'categoryExclusions',
+      'tagForChildDirectedTreatment', 'cookieOptions',
+      'overrideWidth', 'overrideHeight', 'loadingStrategy',
+      'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
+      'experimentId', 'multiSize', 'multiSizeValidation',
   ],
   dfpDefaultTimeout = 1000;
 
@@ -63,17 +43,13 @@ const mandatoryParams = ['tagType', 'cid'],
 export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
-  if (!data.requrl) {
-    data.requrl = global.context.canonicalUrl ||
-      getSourceUrl(global.context.location.href);
-  }
-  if (!data.refurl) {
-    data.refurl = global.context.referrer;
-  }
-  if (data.tagType === 'hb') {
+  data.requrl = global.context.canonicalUrl || getSourceUrl(global.context.location.href);
+  data.refurl = global.context.referrer;
+
+  if (data.tagtype === 'headerbidder') {
     loadHBTag(global, data);
-  } else if (data.tagType === 'sync') {
-    loadSyncTag(global, data);
+  } else if (data.tagtype === 'cm') {
+    loadCMTag(global, data);
   }
 }
 
@@ -142,7 +118,7 @@ function loadHBTag(global, data) {
  * @param {!Window} global
  * @param {!Object} data
  */
-function loadSyncTag(global, data) {
+function loadCMTag(global, data) {
     /*eslint "google-camelcase/google-camelcase": 0*/
     if (!data.crid) {
         return;
