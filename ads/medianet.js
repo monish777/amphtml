@@ -20,16 +20,40 @@ import {doubleclick} from '../ads/google/doubleclick';
 
 const mandatoryParams = ['tagType', 'cid'],
   optionalParams = ['slot',
-      'position',
-      'targeting',
-      'crid',
-      'versionId',
-      'requrl',
-      'timeout',
-      'misc',
-    ],
-  dfpParams = ['slot', 'targeting'],
-  dfpDefaultTimeout = 10000;
+    'position',
+    'targeting',
+    'crid',
+    'versionId',
+    'requrl',
+    'timeout',
+    'misc',
+    'categoryExclusions',
+    'tagForChildDirectedTreatment',
+    'cookieOptions',
+    'overrideWidth',
+    'overrideHeight',
+    'loadingStrategy',
+    'consentNotificationId',
+    'useSameDomainRenderingUntilDeprecated',
+    'experimentId',
+    // 'multiSize',TODO
+    // 'multiSizeValidation',
+  ],
+  dfpParams = ['slot',
+    'targeting',
+    'categoryExclusions',
+    'tagForChildDirectedTreatment',
+    'cookieOptions',
+    'overrideWidth',
+    'overrideHeight',
+    'loadingStrategy',
+    'consentNotificationId',
+    'useSameDomainRenderingUntilDeprecated',
+    'experimentId',
+    // 'multiSize',TODO
+    // 'multiSizeValidation',
+  ],
+  dfpDefaultTimeout = 1000;
 
 /**
  * @param {!Window} global
@@ -115,14 +139,17 @@ function loadHBTag(global, data) {
 
     data.targeting = data.targeting || {};
 
+    if (global.advBidxc && typeof global.advBidxc.setTargeting === 'function') {
+      global.advBidxc.setTargeting(data);
+    }
     deleteUnexpectedDoubleclickParams();
     doubleclick(global, data);
   }
 
   function mnetHBHandle() {
     global.advBidxc = global.context.master.advBidxc;
-    if (typeof global.advBidxc.handleAMPHB === 'function') {
-      global.advBidxc.handleAMPHB({
+    if (global.advBidxc && typeof global.advBidxc.registerAmpSlot === 'function') {
+      global.advBidxc.registerAmpSlot({
         cb: loadDFP,
         data,
         winObj: global,
