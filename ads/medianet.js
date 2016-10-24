@@ -81,41 +81,7 @@ export function medianet(global, data) {
  * @param {!Window} global
  * @param {!Object} data
  */
-function loadSyncTag(global, data) {
-  /*eslint "google-camelcase/google-camelcase": 0*/
-  if (!data.crid) {
-    return;
-  }
-  let url = 'https://contextual.media.net/ampnmedianet.js?';
-  url += 'cid=' + encodeURIComponent(data.cid);
-  url += '&https=1';
-  url += '&requrl=' + encodeURIComponent(data.requrl);
-  if (data.refurl) {
-    url += '&refurl=' + encodeURIComponent(data.refurl);
-    global.medianet_refurl = data.refurl;
-  }
-  if (data.misc) {
-    try {
-      global.medianet_misc = JSON.parse(data.misc);
-    } catch (e) {
-      global.medianet_misc = data.misc;
-    }
-  }
-  setMacro(data, 'versionId');
-  setMacro(data, 'requrl');
-  setMacro(data, 'width');
-  setMacro(data, 'height');
-  setMacro(data, 'crid');
-  setCallbacks(global);
-  writeScript(global, url);
-}
-
-/**
- * @param {!Window} global
- * @param {!Object} data
- */
 function loadHBTag(global, data) {
-
   function deleteUnexpectedDoubleclickParams() {
     const allParams = mandatoryParams.concat(optionalParams);
     let currentParam = '';
@@ -171,6 +137,40 @@ function loadHBTag(global, data) {
     });
   }, mnetHBHandle);
 }
+
+/**
+ * @param {!Window} global
+ * @param {!Object} data
+ */
+function loadSyncTag(global, data) {
+    /*eslint "google-camelcase/google-camelcase": 0*/
+    if (!data.crid) {
+        return;
+    }
+    let url = 'https://contextual.media.net/ampnmedianet.js?';
+    url += 'cid=' + encodeURIComponent(data.cid);
+    url += '&https=1';
+    url += '&requrl=' + encodeURIComponent(data.requrl);
+    if (data.refurl) {
+        url += '&refurl=' + encodeURIComponent(data.refurl);
+        global.medianet_refurl = data.refurl;
+    }
+    if (data.misc) {
+        try {
+            global.medianet_misc = JSON.parse(data.misc);
+        } catch (e) {
+            global.medianet_misc = data.misc;
+        }
+    }
+    setMacro(data, 'versionId');
+    setMacro(data, 'requrl');
+    setMacro(data, 'width');
+    setMacro(data, 'height');
+    setMacro(data, 'crid');
+    setCallbacks(global);
+    writeScript(global, url);
+}
+
 function setMacro(data, type, name) {
   if (!type || !data) {
     return;
@@ -184,23 +184,18 @@ function setMacro(data, type, name) {
 
 function setCallbacks(global) {
   function renderStartCb(opt_data) {
-    console.log('renderStartCalled');
     global.context.renderStart(opt_data);
   }
   function reportRenderedEntityIdentifierCb(ampId) {
-    console.log('reported rendered entity' + ampId);
     global.context.reportRenderedEntityIdentifier(ampId);
   }
   function noContentAvailableCb() {
-    console.log('no content available called');
     global.context.noContentAvailable();
   }
 
-  const callbacks = {
+  global._mNAmp = {
     renderStartCb,
     reportRenderedEntityIdentifierCb,
     noContentAvailableCb,
   };
-  global._mNAmp = callbacks;
-
 }
