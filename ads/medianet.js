@@ -108,8 +108,8 @@ function loadHBTag(global, data) {
 
     data.targeting = data.targeting || {};
 
-    if (global.advBidxc && typeof global.advBidxc.setTargeting === 'function') {
-      global.advBidxc.setTargeting(data);
+    if (global.advBidxc && typeof global.advBidxc.setAmpTargeting === 'function') {
+      global.advBidxc.setAmpTargeting(global, data);
     }
     deleteUnexpectedDoubleclickParams();
     doubleclick(global, data);
