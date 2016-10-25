@@ -28,11 +28,11 @@ const mandatoryParams = ['tagtype', 'cid'],
     'experimentId', 'multiSize', 'multiSizeValidation',
   ],
   dfpParams = [
-      'slot', 'targeting', 'categoryExclusions',
-      'tagForChildDirectedTreatment', 'cookieOptions',
-      'overrideWidth', 'overrideHeight', 'loadingStrategy',
-      'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
-      'experimentId', 'multiSize', 'multiSizeValidation',
+    'slot', 'targeting', 'categoryExclusions',
+    'tagForChildDirectedTreatment', 'cookieOptions',
+    'overrideWidth', 'overrideHeight', 'loadingStrategy',
+    'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
+    'experimentId', 'multiSize', 'multiSizeValidation',
   ],
   dfpDefaultTimeout = 1000;
 
@@ -79,8 +79,8 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
 
     global.advBidxc = global.context.master.advBidxc;
     if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
-      global.addEventListener('message', function (event) {
-          global.advBidxc.renderAmpAd(event, global);
+      global.addEventListener('message', function(event) {
+        global.advBidxc.renderAmpAd(event, global);
       });
     }
 
@@ -109,6 +109,7 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
   }, data.timeout || dfpDefaultTimeout);
 
   computeInMasterFrame(global, 'mnet-hb-load', function(done) {
+    /*eslint "google-camelcase/google-camelcase": 0*/
     global.advBidxc_requrl = publisherUrl;
     global.advBidxc_refurl = referrerUrl;
     writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
