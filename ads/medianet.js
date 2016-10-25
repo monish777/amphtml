@@ -86,7 +86,8 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
 
     data.targeting = data.targeting || {};
 
-    if (global.advBidxc && typeof global.advBidxc.setAmpTargeting === 'function') {
+    if (global.advBidxc &&
+        typeof global.advBidxc.setAmpTargeting === 'function') {
       global.advBidxc.setAmpTargeting(global, data);
     }
     deleteUnexpectedDoubleclickParams();
@@ -95,7 +96,8 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
 
   function mnetHBHandle() {
     global.advBidxc = global.context.master.advBidxc;
-    if (global.advBidxc && typeof global.advBidxc.registerAmpSlot === 'function') {
+    if (global.advBidxc &&
+        typeof global.advBidxc.registerAmpSlot === 'function') {
       global.advBidxc.registerAmpSlot({
         cb: loadDFP,
         data,
