@@ -28,11 +28,11 @@ const mandatoryParams = ['tagtype', 'cid'],
     'experimentId', 'multiSize', 'multiSizeValidation',
   ],
   dfpParams = [
-      'slot', 'targeting', 'categoryExclusions',
-      'tagForChildDirectedTreatment', 'cookieOptions',
-      'overrideWidth', 'overrideHeight', 'loadingStrategy',
-      'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
-      'experimentId', 'multiSize', 'multiSizeValidation',
+    'slot', 'targeting', 'categoryExclusions',
+    'tagForChildDirectedTreatment', 'cookieOptions',
+    'overrideWidth', 'overrideHeight', 'loadingStrategy',
+    'consentNotificationId', 'useSameDomainRenderingUntilDeprecated',
+    'experimentId', 'multiSize', 'multiSizeValidation',
   ],
   dfpDefaultTimeout = 1000;
 
@@ -43,7 +43,8 @@ const mandatoryParams = ['tagtype', 'cid'],
 export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
-  data.requrl = global.context.canonicalUrl || getSourceUrl(global.context.location.href);
+  data.requrl = global.context.canonicalUrl ||
+      getSourceUrl(global.context.location.href);
 
   if (data.tagtype === 'headerbidder') {
     loadHBTag(global, data);
@@ -75,8 +76,8 @@ function loadHBTag(global, data) {
 
     global.advBidxc = global.context.master.advBidxc;
     if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
-      global.addEventListener('message', function (event) {
-          global.advBidxc.renderAmpAd(event, global);
+      global.addEventListener('message', function(event) {
+        global.advBidxc.renderAmpAd(event, global);
       });
     }
 
@@ -105,6 +106,7 @@ function loadHBTag(global, data) {
   }, data.timeout || dfpDefaultTimeout);
 
   computeInMasterFrame(global, 'mnet-hb-load', function(done) {
+    /*eslint "google-camelcase/google-camelcase": 0*/
     global.advBidxc_requrl = data.requrl;
     writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
       done();
