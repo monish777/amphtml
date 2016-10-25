@@ -43,18 +43,22 @@ const mandatoryParams = ['tagtype', 'cid'],
 export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
-  data.requrl = global.context.canonicalUrl || getSourceUrl(global.context.location.href);
+  const publisherUrl = global.context.canonicalUrl ||
+    getSourceUrl(global.context.location.href),
+    referrerUrl = global.context.referrer;
 
-  if (data.tagtype === 'headerbidder') {
-    loadHBTag(global, data);
+  if (data.tagtype === 'headerbidder') { //tagtype is used for other products future development
+    loadHBTag(global, data, publisherUrl, referrerUrl);
   }
 }
 
 /**
  * @param {!Window} global
  * @param {!Object} data
+ * @param {!string} publisherUrl
+ * @param {?string} referrerUrl
  */
-function loadHBTag(global, data) {
+function loadHBTag(global, data, publisherUrl, referrerUrl) {
   function deleteUnexpectedDoubleclickParams() {
     const allParams = mandatoryParams.concat(optionalParams);
     let currentParam = '';
@@ -105,7 +109,8 @@ function loadHBTag(global, data) {
   }, data.timeout || dfpDefaultTimeout);
 
   computeInMasterFrame(global, 'mnet-hb-load', function(done) {
-    global.advBidxc_requrl = data.requrl;
+    global.advBidxc_requrl = publisherUrl;
+    global.advBidxc_refurl = referrerUrl;
     writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
       done();
     });
