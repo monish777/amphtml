@@ -20,7 +20,7 @@ import {doubleclick} from '../ads/google/doubleclick';
 
 const mandatoryParams = ['tagtype', 'cid'],
   optionalParams = [
-    'crid', 'timeout', 'misc',
+    'timeout',
     'slot', 'targeting', 'categoryExclusions',
     'tagForChildDirectedTreatment', 'cookieOptions',
     'overrideWidth', 'overrideHeight', 'loadingStrategy',
@@ -44,12 +44,9 @@ export function medianet(global, data) {
   validateData(data, mandatoryParams, optionalParams);
 
   data.requrl = global.context.canonicalUrl || getSourceUrl(global.context.location.href);
-  data.refurl = global.context.referrer;
 
   if (data.tagtype === 'headerbidder') {
     loadHBTag(global, data);
-  } else if (data.tagtype === 'cm') {
-    loadCMTag(global, data);
   }
 }
 
@@ -76,6 +73,7 @@ function loadHBTag(global, data) {
     }
     isDoubleClickCalled = true;
 
+    global.advBidxc = global.context.master.advBidxc;
     if (global.advBidxc && typeof global.advBidxc.renderAmpAd === 'function') {
       global.addEventListener('message', function (event) {
           global.advBidxc.renderAmpAd(event, global);
@@ -108,70 +106,8 @@ function loadHBTag(global, data) {
 
   computeInMasterFrame(global, 'mnet-hb-load', function(done) {
     global.advBidxc_requrl = data.requrl;
-    writeScript(global, 'http://cmlocal.media.net/bidexchange.php?amp=1&cid=' + data.cid, () => {
+    writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
       done();
     });
   }, mnetHBHandle);
-}
-
-/**
- * @param {!Window} global
- * @param {!Object} data
- */
-function loadCMTag(global, data) {
-    /*eslint "google-camelcase/google-camelcase": 0*/
-    if (!data.crid) {
-        return;
-    }
-    let url = 'https://contextual.media.net/ampnmedianet.js?';
-    url += 'cid=' + encodeURIComponent(data.cid);
-    url += '&https=1';
-    url += '&requrl=' + encodeURIComponent(data.requrl);
-    if (data.refurl) {
-        url += '&refurl=' + encodeURIComponent(data.refurl);
-        global.medianet_refurl = data.refurl;
-    }
-    if (data.misc) {
-        try {
-            global.medianet_misc = JSON.parse(data.misc);
-        } catch (e) {
-            global.medianet_misc = data.misc;
-        }
-    }
-    setMacro(data, 'versionId');
-    setMacro(data, 'requrl');
-    setMacro(data, 'width');
-    setMacro(data, 'height');
-    setMacro(data, 'crid');
-    setCallbacks(global);
-    writeScript(global, url);
-}
-
-function setMacro(data, type, name) {
-  if (!type || !data) {
-    return;
-  }
-  name = name || type;
-  name = 'medianet_' + name;
-  if (data[type]) {
-    global[name] = data[type];
-  }
-}
-
-function setCallbacks(global) {
-  function renderStartCb(opt_data) {
-    global.context.renderStart(opt_data);
-  }
-  function reportRenderedEntityIdentifierCb(ampId) {
-    global.context.reportRenderedEntityIdentifier(ampId);
-  }
-  function noContentAvailableCb() {
-    global.context.noContentAvailable();
-  }
-
-  global._mNAmp = {
-    renderStartCb,
-    reportRenderedEntityIdentifierCb,
-    noContentAvailableCb,
-  };
 }
