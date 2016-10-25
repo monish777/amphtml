@@ -114,8 +114,12 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
     /*eslint "google-camelcase/google-camelcase": 0*/
     global.advBidxc_requrl = publisherUrl;
     global.advBidxc_refurl = referrerUrl;
+    global.advBidxc = {};
+    global.advBidxc.registerAmpSlot = () => {};
+    global.advBidxc.setAmpTargeting = () => {};
+    global.advBidxc.renderAmpAd = () => {};
     writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
-      done();
+      done(null);
     });
   }, mnetHBHandle);
 }
