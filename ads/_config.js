@@ -189,6 +189,8 @@ export const adConfig = {
     prefetch: 'https://cdn.gmossp-sp.jp/ads/amp.js',
   },
 
+  ibillboard: {},
+
   imobile: {
     prefetch: 'https://spamp.i-mobile.co.jp/script/amp.js',
     preconnect: 'https://spad.i-mobile.co.jp',
@@ -287,6 +289,11 @@ export const adConfig = {
     ],
   },
 
+  nokta: {
+    prefetch: 'https://static.virgul.com/theme/mockups/noktaamp/ampjs.js',
+    renderStartImplemented: true,
+  },
+
   openadstream: {},
 
   openx: {
@@ -313,6 +320,11 @@ export const adConfig = {
     preconnect: 'https://tag.contextweb.com',
   },
 
+  purch: {
+    prefetch: 'https://ramp.purch.com/serve/creative_amp.js',
+    renderStartImplemented: true,
+  },
+
   revcontent: {
     prefetch: 'https://labs-cdn.revcontent.com/build/amphtml/revcontent.amp.min.js',
     preconnect: [
@@ -324,7 +336,9 @@ export const adConfig = {
 
   rubicon: {},
 
-  sharethrough: {},
+  sharethrough: {
+    renderStartImplemented: true,
+  },
 
   smartadserver: {
     prefetch: 'https://ec-ns.sascdn.com/diff/js/amp.v0.js',
