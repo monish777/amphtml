@@ -118,7 +118,7 @@ function loadHBTag(global, data, publisherUrl, referrerUrl) {
     global.advBidxc.registerAmpSlot = () => {};
     global.advBidxc.setAmpTargeting = () => {};
     global.advBidxc.renderAmpAd = () => {};
-    writeScript(global, 'http://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
+    writeScript(global, 'https://contextual.media.net/bidexchange.js?amp=1&cid=' + data.cid, () => {
       done(null);
     });
   }, mnetHBHandle);
